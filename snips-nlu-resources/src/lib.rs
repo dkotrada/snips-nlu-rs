@@ -6,33 +6,6 @@ extern crate itertools;
 extern crate lazy_static;
 extern crate snips_nlu_utils as nlu_utils;
 
-#[cfg(unix)]
-macro_rules! cross_platform_path {
-    ($head:expr, $($component:expr),*) => {
-        concat!($head, "/", cross_platform_path!($($component),*))
-    };
-    ($component:expr) => {
-        $component
-    }
-}
-
-#[cfg(windows)]
-macro_rules! cross_platform_path {
-    ($head:expr, $($component:expr),*) => {
-        concat!($head, "\\", cross_platform_path!($($component),*))
-    };
-    ($component:expr) => {
-        $component
-    }
-}
-
-#[macro_export]
-macro_rules! include_bytes_cross_platform {
-    ($($component:expr),*) => {
-        include_bytes!(cross_platform_path!($($component),*))
-    }
-}
-
 pub mod errors {
     pub type Result<T> = ::std::result::Result<T, ::failure::Error>;
 }
@@ -86,40 +59,40 @@ pub mod stems {
 
     pub fn en() -> Result<HashMap<String, String>> {
         let mut result = parse_inflections(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "en", "top_10000_words_inflected.txt")[..],
+            &include_bytes!("../snips-nlu-resources/en/top_10000_words_inflected.txt")[..],
         )?;
         result.extend(parse_lexemes(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "en", "top_1000_verbs_lexemes.txt")[..],
+            &include_bytes!("../snips-nlu-resources/en/top_1000_verbs_lexemes.txt")[..],
         )?);
         Ok(result)
     }
 
     pub fn fr() -> Result<HashMap<String, String>> {
         let mut result = parse_inflections(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "fr", "top_10000_words_inflected.txt")[..],
+            &include_bytes!("../snips-nlu-resources/fr/top_10000_words_inflected.txt")[..],
         )?;
         result.extend(parse_lexemes(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "fr", "top_2000_verbs_lexemes.txt")[..],
+            &include_bytes!("../snips-nlu-resources/fr/top_2000_verbs_lexemes.txt")[..],
         )?);
         Ok(result)
     }
 
     pub fn es() -> Result<HashMap<String, String>> {
         let mut result = parse_inflections(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "es", "top_10000_words_inflected.txt")[..],
+            &include_bytes!("../snips-nlu-resources/es/top_10000_words_inflected.txt")[..],
         )?;
         result.extend(parse_lexemes(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "es", "top_1000_verbs_lexemes.txt")[..],
+            &include_bytes!("../snips-nlu-resources/es/top_1000_verbs_lexemes.txt")[..],
         )?);
         Ok(result)
     }
 
     pub fn de() -> Result<HashMap<String, String>> {
         let mut result = parse_inflections(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "de", "top_10000_words_inflected.txt")[..],
+            &include_bytes!("../snips-nlu-resources/de/top_10000_words_inflected.txt")[..],
         )?;
         result.extend(parse_lexemes(
-            &include_bytes_cross_platform!("..", "snips-nlu-resources", "de", "top_1000_verbs_lexemes.txt")[..],
+            &include_bytes!("../snips-nlu-resources/de/top_1000_verbs_lexemes.txt")[..],
         )?);
         Ok(result)
     }
@@ -153,7 +126,7 @@ pub mod word_clusters {
 
         pub fn brown_clusters() -> Result<HashMap<String, String>> {
             super::parse_clusters(
-                &include_bytes_cross_platform!("..", "snips-nlu-resources", "en", "brown_clusters.txt")[..],
+                &include_bytes!("../snips-nlu-resources/en/brown_clusters.txt")[..],
             )
         }
     }
@@ -175,8 +148,8 @@ pub mod gazetteer {
         stem_fn: F,
         language: Language,
     ) -> Result<HashSet<String>>
-        where
-            F: Fn(String) -> String,
+    where
+        F: Fn(String) -> String,
     {
         let reader = BufReader::new(gazetteer_reader);
         let mut result = HashSet::new();
@@ -200,12 +173,13 @@ pub mod gazetteer {
         ($language:ident, $gazetteer_name:ident) => {
             pub fn $gazetteer_name() -> Result<HashSet<String>> {
                 super::parse_gazetteer(
-                    &include_bytes_cross_platform!(
-                        "..",
-                        "snips-nlu-resources",
+                    &include_bytes!(concat!(
+                        "../snips-nlu-resources/",
                         stringify!($language),
-                        concat!(stringify!($gazetteer_name), ".txt")
-                    )[..],
+                        "/",
+                        stringify!($gazetteer_name),
+                        ".txt"
+                    ))[..],
                     stems::no_stem,
                     Language::from_str(stringify!($language)).map_err(::failure::err_msg)?,
                 )
@@ -214,12 +188,13 @@ pub mod gazetteer {
         ($language:ident, $function_name:ident, $gazetteer_name:ident, $stem:ident) => {
             pub fn $function_name() -> Result<HashSet<String>> {
                 super::parse_gazetteer(
-                    &include_bytes_cross_platform!(
-                        "..",
-                        "snips-nlu-resources",
+                    &include_bytes!(concat!(
+                        "../snips-nlu-resources/",
                         stringify!($language),
-                        concat!(stringify!($gazetteer_name), ".txt")
-                    )[..],
+                        "/",
+                        stringify!($gazetteer_name),
+                        ".txt"
+                    ))[..],
                     $stem,
                     Language::from_str(stringify!($language)).map_err(::failure::err_msg)?,
                 )

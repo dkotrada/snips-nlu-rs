@@ -12,33 +12,6 @@ use snips_nlu_ontology::Language;
 
 type Result<T> = ::std::result::Result<T, ::failure::Error>;
 
-#[cfg(unix)]
-macro_rules! cross_platform_path {
-    ($head:expr, $($component:expr),*) => {
-        concat!($head, "/", cross_platform_path!($($component),*))
-    };
-    ($component:expr) => {
-        $component
-    }
-}
-
-#[cfg(windows)]
-macro_rules! cross_platform_path {
-    ($head:expr, $($component:expr),*) => {
-        concat!($head, "\\", cross_platform_path!($($component),*))
-    };
-    ($component:expr) => {
-        $component
-    }
-}
-
-#[macro_export]
-macro_rules! include_bytes_cross_platform {
-    ($($component:expr),*) => {
-        include_bytes!(cross_platform_path!($($component),*))
-    }
-}
-
 include!(concat!(env!("OUT_DIR"), "/phf.rs"));
 
 fn parse_clusters<R: Read>(clusters_file_reader: R) -> Result<HashMap<String, String>> {
@@ -57,16 +30,7 @@ fn parse_clusters<R: Read>(clusters_file_reader: R) -> Result<HashMap<String, St
 }
 
 lazy_static!{
-    static ref WORD_CLUSTERS_JA_W2V_CLUSTERS: HashMap<String, String> =
-        parse_clusters(
-            &include_bytes_cross_platform!(
-                "..",
-                "..",
-                "snips-nlu-resources",
-                "snips-nlu-resources",
-                "ja",
-                "w2v_clusters.txt"
-            )[..]).unwrap();
+    static ref WORD_CLUSTERS_JA_W2V_CLUSTERS: HashMap<String, String> = parse_clusters(&include_bytes!("../../snips-nlu-resources/snips-nlu-resources/ja/w2v_clusters.txt")[..]).unwrap();
 }
 
 pub fn stem(language: Language, word: &str) -> Result<String> {
